@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="jumbotron bg-light p-5 rounded">
+            <h1 class="display-4">Welcome to Expense Tracker</h1>
+            <p class="lead">Take control of your finances by tracking your expenses, analyzing spending patterns, and making informed financial decisions.</p>
+            <hr class="my-4">
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="card h-100">
+                        <div class="card-body text-center">
+                            <i class="fas fa-chart-pie fa-3x text-primary mb-3"></i>
+                            <h5 class="card-title">Track Expenses</h5>
+                            <p class="card-text">Easily add, edit, and categorize your daily expenses.</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="card h-100">
+                        <div class="card-body text-center">
+                            <i class="fas fa-chart-line fa-3x text-success mb-3"></i>
+                            <h5 class="card-title">Analytics</h5>
+                            <p class="card-text">View detailed analytics and export your data.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="text-center mt-4">
+                <a class="btn btn-primary btn-lg me-3" href="{{ url_for('register') }}" role="button">
+                    <i class="fas fa-user-plus me-2"></i>Get Started
+                </a>
+                <a class="btn btn-outline-primary btn-lg" href="{{ url_for('login') }}" role="button">
+                    <i class="fas fa-sign-in-alt me-2"></i>Login
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

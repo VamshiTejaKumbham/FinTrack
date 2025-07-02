@@ -1,0 +1,105 @@
+{% extends "base.html" %}
+
+{% block title %}Analytics - Expense Tracker{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <h2>Analytics</h2>
+    </div>
+</div>
+
+<div class="row mb-4">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                <h5>Monthly Spending Trend</h5>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th>Month</th>
+                                <th>Total Spent</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for data in monthly_data %}
+                            <tr>
+                                <td>{{ data.month }} {{ data.year }}</td>
+                                <td>${{ "%.2f"|format(data.total) }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header">
+                <h5>Category Totals</h5>
+            </div>
+            <div class="card-body">
+                {% if category_totals %}
+                {% set total_amount = category_totals | sum(attribute=1) %}
+                {% for category, amount in category_totals %}
+                <div class="d-flex justify-content-between mb-2">
+                    <span>{{ category }}</span>
+                    <strong>${{ "%.2f"|format(amount) }}</strong>
+                </div>
+                <div class="progress mb-3">
+                    <div class="progress-bar" role="progressbar" 
+                         style="width: {{ (amount / total_amount * 100) if total_amount > 0 else 0 }}%">
+                    </div>
+                </div>
+                {% endfor %}
+                <div class="text-center mt-3">
+                    <strong>Total: ${{ "%.2f"|format(total_amount) }}</strong>
+                </div>
+                {% else %}
+                <p class="text-center">No expenses recorded yet</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5>Quick Stats</h5>
+            </div>
+            <div class="card-body">
+                <div class="row text-center">
+                    <div class="col-md-3">
+                        <div class="border-end">
+                            <h4>${{ "%.2f"|format(monthly_data[-1].total if monthly_data else 0) }}</h4>
+                            <p class="text-muted">This Month</p>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="border-end">
+                            <h4>${{ "%.2f"|format((monthly_data | sum(attribute='total')) / 12 if monthly_data else 0) }}</h4>
+                            <p class="text-muted">Monthly Average</p>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="border-end">
+                            <h4>{{ category_totals | length }}</h4>
+                            <p class="text-muted">Categories Used</p>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <h4>${{ "%.2f"|format(category_totals | sum(attribute=1) if category_totals else 0) }}</h4>
+                        <p class="text-muted">Total Spent</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
