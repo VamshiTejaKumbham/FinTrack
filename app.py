@@ -8,6 +8,10 @@ import io
 from collections import defaultdict
 import calendar
 
+@app.route("/health")
+def health():
+    return {"status": "ok"}, 200
+
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'your-secret-key-change-in-production'
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///expense_tracker.db'
