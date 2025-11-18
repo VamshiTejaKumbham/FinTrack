@@ -8,10 +8,6 @@ import io
 from collections import defaultdict
 import calendar
 
-@app.route("/health")
-def health():
-    return {"status": "ok"}, 200
-
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'your-secret-key-change-in-production'
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///expense_tracker.db'
@@ -43,6 +39,10 @@ def load_user(user_id):
     return User.query.get(int(user_id))
 
 # Routes
+@app.route("/health")
+def health():
+    return {"status": "ok"}, 200
+    
 @app.route('/')
 def index():
     if current_user.is_authenticated:
