@@ -35,3 +35,8 @@ jobs:
         run: |
           ansible-playbook ansible/site.yml -i inventory.ini \
             --extra-vars "repo_version=main"
+      - name: Force restart gunicorn
+        run: |
+          ssh -o StrictHostKeyChecking=no ubuntu@${{ secrets.DEPLOY_HOST }} \
+          "sudo systemctl restart fintrack-gunicorn"
+
