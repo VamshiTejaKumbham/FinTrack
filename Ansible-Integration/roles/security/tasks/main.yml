@@ -1,0 +1,43 @@
+# roles/security/tasks/main.yml
+
+- name: Ensure system packages are upgraded
+  apt:
+    upgrade: dist
+    update_cache: yes
+
+- name: Allow OpenSSH in UFW
+  ufw:
+    rule: allow
+    name: OpenSSH
+
+- name: Allow HTTP (80)
+  ufw:
+    rule: allow
+    port: "80"
+
+# Enable UFW the correct way (no 'enabled:' param)
+- name: Enable UFW firewall
+  command: ufw --force enable
+  register: ufw_enable_result
+  changed_when: "'already enabled' not in ufw_enable_result.stderr"
+
+- name: Disable SSH password authentication
+  replace:
+    path: /etc/ssh/sshd_config
+    regexp: '^#?PasswordAuthentication\s+.*'
+    replace: 'PasswordAuthentication no'
+  notify: Restart ssh
+
+- name: Disable root SSH login
+  replace:
+    path: /etc/ssh/sshd_config
+    regexp: '^#?PermitRootLogin\s+.*'
+    replace: 'PermitRootLogin no'
+  notify: Restart ssh
+
+- name: Lock down permissions for app directory
+  file:
+    path: "{{ app_base }}"
+    owner: "{{ app_user }}"
+    group: "{{ app_group }}"
+    mode: '0755'

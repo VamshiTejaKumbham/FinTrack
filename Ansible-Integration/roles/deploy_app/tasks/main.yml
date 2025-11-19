@@ -1,0 +1,132 @@
+- name: DEBUG REPO URL
+  debug:
+    var: repo_url
+
+# ------------------------------
+# Release directory management
+# ------------------------------
+- name: Create new release timestamp
+  set_fact:
+    release_dir: "{{ releases_path }}/{{ lookup('pipe','date +%Y%m%d%H%M%S') }}"
+
+- name: Ensure release dir is absent (clean slate)
+  file:
+    path: "{{ release_dir }}"
+    state: absent
+
+- name: Recreate release directory clean
+  file:
+    path: "{{ release_dir }}"
+    state: directory
+    owner: "{{ app_user }}"
+    group: "{{ app_group }}"
+    mode: '0755'
+
+# ------------------------------
+# Clone repository (manual command to avoid ssh/acl issues)
+# ------------------------------
+- name: Clone repository into release dir (command fallback)
+  shell: |
+    git clone -b {{ repo_version }} {{ repo_url }} {{ release_dir }}
+  args:
+    executable: /bin/bash
+  become: true
+
+- name: Ensure repo ownership is set to app user
+  file:
+    path: "{{ release_dir }}"
+    state: directory
+    recurse: yes
+    owner: "{{ app_user }}"
+    group: "{{ app_group }}"
+
+# ------------------------------
+# Virtualenv creation (NO become_user)
+# ------------------------------
+- name: Create virtualenv
+  shell: |
+    python3 -m venv {{ venv_path }}
+  args:
+    executable: /bin/bash
+    creates: "{{ venv_path }}"
+  become: true
+
+- name: Fix venv ownership
+  file:
+    path: "{{ venv_path }}"
+    recurse: yes
+    owner: "{{ app_user }}"
+    group: "{{ app_group }}"
+  become: true
+
+# ------------------------------
+# Install dependencies as fintrack user (WSL-safe)
+# ------------------------------
+- name: Install pip requirements as fintrack user
+  shell: |
+    sudo -u {{ app_user }} {{ venv_path }}/bin/pip install -r {{ release_dir }}/requirements.txt
+  args:
+    executable: /bin/bash
+  become: true
+
+# ------------------------------
+# DB initialization (optional)
+# ------------------------------
+- name: Initialize DB if script exists
+  shell: |
+    if [ -f "{{ release_dir }}/init_db.sh" ]; then
+      sudo -u {{ app_user }} {{ venv_path }}/bin/python {{ release_dir }}/init_db.sh
+    fi
+  args:
+    executable: /bin/bash
+  ignore_errors: yes
+  become: true
+
+# ------------------------------
+# Link current → new release
+# ------------------------------
+- name: Update current symlink
+  file:
+    src: "{{ release_dir }}"
+    dest: "{{ current_path }}"
+    state: link
+    owner: "{{ app_user }}"
+    group: "{{ app_group }}"
+
+# ------------------------------
+# Gunicorn systemd service
+# ------------------------------
+- name: Template gunicorn systemd service
+  template:
+    src: gunicorn.service.j2
+    dest: /etc/systemd/system/fintrack-gunicorn.service
+    mode: '0644'
+  notify:
+    - daemon-reload
+    - restart gunicorn
+
+# ------------------------------
+# Nginx config
+# ------------------------------
+- name: Template nginx config
+  template:
+    src: nginx.conf.j2
+    dest: /etc/nginx/sites-available/fintrack
+    mode: '0644'
+  notify:
+    - restart nginx
+
+- name: Enable site
+  file:
+    src: /etc/nginx/sites-available/fintrack
+    dest: /etc/nginx/sites-enabled/fintrack
+    state: link
+  notify:
+    - restart nginx
+
+- name: Remove default nginx site
+  file:
+    path: /etc/nginx/sites-enabled/default
+    state: absent
+  notify:
+    - restart nginx

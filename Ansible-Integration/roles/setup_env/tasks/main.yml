@@ -1,0 +1,47 @@
+- name: Ensure apt cache is up to date (Ubuntu)
+  apt:
+    update_cache: yes
+    cache_valid_time: 3600
+
+- name: Install system packages
+  apt:
+    name:
+      - python3
+      - python3-venv
+      - python3-pip
+      - git
+      - nginx
+      - build-essential
+      - libpq-dev
+      - ufw
+      - curl
+    state: present
+
+- name: Create app user
+  user:
+    name: "{{ app_user }}"
+    group: "{{ app_group }}"
+    system: yes
+    createhome: no
+    shell: /bin/bash
+  ignore_errors: yes
+
+- name: Create base directories
+  file:
+    path: "{{ item }}"
+    state: directory
+    owner: "{{ app_user }}"
+    group: "{{ app_group }}"
+    mode: "0755"
+  loop:
+    - "{{ app_base }}"
+    - "{{ releases_path }}"
+    - "{{ log_dir }}"
+
+- name: Create releases subdir and current symlink target
+  file:
+    path: "{{ releases_path }}"
+    state: directory
+    owner: "{{ app_user }}"
+    group: "{{ app_group }}"
+    mode: "0755"

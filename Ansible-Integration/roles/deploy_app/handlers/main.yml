@@ -1,0 +1,19 @@
+- name: daemon-reload
+  command: systemctl daemon-reload
+
+- name: restart gunicorn
+  service:
+    name: fintrack-gunicorn
+    state: restarted
+    enabled: yes
+
+- name: restart nginx
+  service:
+    name: nginx
+    state: restarted
+    enabled: yes
+
+- name: Restart ssh
+  service:
+    name: ssh
+    state: restarted

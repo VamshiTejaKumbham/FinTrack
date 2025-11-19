@@ -1,0 +1,9 @@
+- name: Prepare server and deploy FinTrack
+  hosts: web
+  become: true
+  roles:
+    - setup_env
+    - security
+    - logging
+    - deploy_app
+    - healthcheck

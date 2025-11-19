@@ -1,0 +1,11 @@
+[web]
+ec2-web ansible_host=13.62.175.113 ansible_user=ubuntu
+
+[proxy]
+ec2-web
+
+[db]
+ec2-web
+
+[all:vars]
+ansible_python_interpreter=/usr/bin/python3

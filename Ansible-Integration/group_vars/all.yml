@@ -1,0 +1,14 @@
+app_user: fintrack
+app_group: fintrack
+app_base: /opt/fintrack
+repo_url: 'https://github.com/VamshiTejaKumbham/FinTrack.git'
+repo_version: main
+venv_path: "{{ app_base }}/venv"
+releases_path: "{{ app_base }}/releases"
+current_path: "{{ app_base }}/current"
+gunicorn_workers: 3
+bind_address: "127.0.0.1:8000"
+server_name: "{{ ansible_host }}"
+log_dir: /var/log/fintrack
+secret_key: "change_this_in_prod"
+db_path: "{{ current_path }}/fintrack.db"

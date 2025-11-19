@@ -1,0 +1,19 @@
+- name: Wait for app to be up (health endpoint)
+  uri:
+    url: "http://127.0.0.1/health"
+    method: GET
+    status_code: 200
+    timeout: 5
+    return_content: no
+  register: health_result
+  retries: 6
+  delay: 5
+  until: health_result.status == 200
+  failed_when: health_result.status is not defined or health_result.status != 200
+
+- name: success message
+  debug:
+    msg: "Health check succeeded."
+
+# NOTE: If the healthcheck fails, the playbook will mark failure.
+# You can implement a rollback by snapshotting previous symlink and restoring it on failure.

@@ -1,0 +1,29 @@
+- name: Ensure log directory exists
+  file:
+    path: "{{ log_dir }}"
+    state: directory
+    owner: "{{ app_user }}"
+    group: "{{ app_group }}"
+    mode: '0755'
+
+- name: Create logrotate config for fintrack
+  copy:
+    dest: /etc/logrotate.d/fintrack
+    content: |
+      {{ log_dir }}/*.log {
+          daily
+          missingok
+          rotate 14
+          compress
+          delaycompress
+          notifempty
+          create 0640 {{ app_user }} {{ app_group }}
+          sharedscripts
+          postrotate
+              systemctl reload nginx > /dev/null 2>/dev/null || true
+              systemctl restart fintrack || true
+          endscript
+      }
+    owner: root
+    group: root
+    mode: '0644'

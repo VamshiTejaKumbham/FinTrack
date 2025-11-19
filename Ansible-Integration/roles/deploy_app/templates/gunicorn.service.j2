@@ -1,0 +1,17 @@
+[Unit]
+Description=Gunicorn for FinTrack
+After=network.target
+
+[Service]
+User=fintrack
+Group=fintrack
+WorkingDirectory=/opt/fintrack/current
+Environment="PATH=/opt/fintrack/venv/bin"
+ExecStart=/opt/fintrack/venv/bin/python3 -m gunicorn \
+    --workers 3 \
+    --bind 127.0.0.1:8000 \
+    app:app
+Restart=always
+
+[Install]
+WantedBy=multi-user.target
