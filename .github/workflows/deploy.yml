@@ -1,0 +1,40 @@
+name: CI/CD - Deploy FinTrack
+
+on:
+  push:
+    branches: ["main"]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.10"
+
+      - name: Install Ansible
+        run: |
+          pip install ansible==8.8.0 paramiko
+
+      - name: Add SSH key
+        uses: webfactory/ssh-agent@v0.8.1
+        with:
+          ssh-private-key: ${{ secrets.DEPLOY_SSH_PRIVATE_KEY }}
+
+      - name: Create inventory file
+        run: |
+          cat > inventory.ini <<EOF
+          [web]
+          ${DEPLOY_HOST} ansible_user=ubuntu ansible_ssh_private_key_file=~/.ssh/id_rsa
+          EOF
+        env:
+          DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
+
+      - name: Run Ansible Playbook (Deploy)
+        run: |
+          ansible-playbook ansible/site.yml -i inventory.ini -e "repo_version=${GITHUB_SHA}"
